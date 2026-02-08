@@ -1,3 +1,4 @@
+package Fibonacci;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -10,21 +11,25 @@ import java.util.Arrays;
 
 import javax.swing.JFrame;
 
-public class RecursionMemorization {
+public class Iterative {
 
-    public static int recursionMemorization(int n, int[] memo) {
+    public static int iterative(int n) {
+        int temp = 0;
+        int a = 0;
+        int b = 1;
         if (n <= 1) {
             return n;
+        } else {
+            for (int i = 2; i <= n; i++) {
+                temp = a;
+                a = b;
+                b = temp + b;
+            }
+            return b;
         }
-
-        if (memo[n] != -1) {
-            return memo[n]; // return stored result, if it already has been computed it will be returned
-        }
-
-        memo[n] = recursionMemorization(n - 1, memo) + recursionMemorization(n - 2, memo);
-        return memo[n];
     }
 
+   
     public static void main(String[] args) {
 
         int[] arr = { 501, 631, 794, 1000, 1259, 1585, 1995, 2512, 3162, 3981, 5012, 6310, 7943, 10000, 12589, 15849 };
@@ -35,11 +40,11 @@ public class RecursionMemorization {
             int[] m = new int[n + 1];
             Arrays.fill(m, -1);
             for (int i = 0; i < 1000; i++) {
-                recursionMemorization(2, m); // Make JIT run here so that it does not affect the measurements of the time
+                iterative(2); // Make JIT run here so that it does not affect the measurements of the time
             }
 
             long startTime = System.nanoTime();
-            int fib = recursionMemorization(n, m);
+            int fib = iterative(n);
             long endTime = System.nanoTime();
 
             double duration = (double) (endTime - startTime) / 1_000_000; // ms

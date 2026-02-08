@@ -1,3 +1,4 @@
+package Fibonacci;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -10,25 +11,16 @@ import java.util.Arrays;
 
 import javax.swing.JFrame;
 
-public class Iterative {
+public class Binnet {
 
-    public static int iterative(int n) {
-        int temp = 0;
-        int a = 0;
-        int b = 1;
-        if (n <= 1) {
-            return n;
-        } else {
-            for (int i = 2; i <= n; i++) {
-                temp = a;
-                a = b;
-                b = temp + b;
-            }
-            return b;
-        }
+    public static int binet(int n) {
+        double sqrt5 = Math.sqrt(5);
+        double phi = (1 + sqrt5) / 2;
+        double psi = (1 - sqrt5) / 2;
+
+        return (int) Math.round((Math.pow(phi, n) - Math.pow(psi, n)) / sqrt5);
     }
 
-   
     public static void main(String[] args) {
 
         int[] arr = { 501, 631, 794, 1000, 1259, 1585, 1995, 2512, 3162, 3981, 5012, 6310, 7943, 10000, 12589, 15849 };
@@ -39,11 +31,11 @@ public class Iterative {
             int[] m = new int[n + 1];
             Arrays.fill(m, -1);
             for (int i = 0; i < 1000; i++) {
-                iterative(2); // Make JIT run here so that it does not affect the measurements of the time
+                binet(2); // Make JIT run here so that it does not affect the measurements of the time
             }
 
             long startTime = System.nanoTime();
-            int fib = iterative(n);
+            int fib = binet(n);
             long endTime = System.nanoTime();
 
             double duration = (double) (endTime - startTime) / 1_000_000; // ms

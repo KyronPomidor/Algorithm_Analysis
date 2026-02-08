@@ -1,3 +1,4 @@
+package Fibonacci;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -10,14 +11,19 @@ import java.util.Arrays;
 
 import javax.swing.JFrame;
 
-public class Binnet {
+public class RecursionMemorization {
 
-    public static int binet(int n) {
-        double sqrt5 = Math.sqrt(5);
-        double phi = (1 + sqrt5) / 2;
-        double psi = (1 - sqrt5) / 2;
+    public static int recursionMemorization(int n, int[] memo) {
+        if (n <= 1) {
+            return n;
+        }
 
-        return (int) Math.round((Math.pow(phi, n) - Math.pow(psi, n)) / sqrt5);
+        if (memo[n] != -1) {
+            return memo[n]; // return stored result, if it already has been computed it will be returned
+        }
+
+        memo[n] = recursionMemorization(n - 1, memo) + recursionMemorization(n - 2, memo);
+        return memo[n];
     }
 
     public static void main(String[] args) {
@@ -30,11 +36,11 @@ public class Binnet {
             int[] m = new int[n + 1];
             Arrays.fill(m, -1);
             for (int i = 0; i < 1000; i++) {
-                binet(2); // Make JIT run here so that it does not affect the measurements of the time
+                recursionMemorization(2, m); // Make JIT run here so that it does not affect the measurements of the time
             }
 
             long startTime = System.nanoTime();
-            int fib = binet(n);
+            int fib = recursionMemorization(n, m);
             long endTime = System.nanoTime();
 
             double duration = (double) (endTime - startTime) / 1_000_000; // ms
