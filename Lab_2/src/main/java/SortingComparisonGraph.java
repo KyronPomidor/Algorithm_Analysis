@@ -3,8 +3,14 @@ import javax.swing.JFrame;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
+import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
 import org.jfree.data.category.DefaultCategoryDataset;
+import java.awt.BasicStroke;
+import java.awt.Color;
 
 public class SortingComparisonGraph {
 
@@ -34,6 +40,51 @@ public class SortingComparisonGraph {
         return i;
     }
 
+    // Better Quick Sort
+    static void quickSortBetter(int[] arr, int start, int end) {
+        while (start < end) {
+
+            // Choose better pivot
+            medianOfThree(arr, start, end);
+            int pivot = partition(arr, start, end);
+
+            // Recurse into smaller partition first
+            if (pivot - start < end - pivot) {
+                quickSortBetter(arr, start, pivot - 1);
+                start = pivot + 1;
+            } else {
+                quickSortBetter(arr, pivot + 1, end);
+                end = pivot - 1;
+            }
+        }
+    }
+
+    static void medianOfThree(int[] arr, int start, int end) {
+        int mid = start + (end - start) / 2;
+
+        // Sort start, mid, end so median ends up at mid
+        if (arr[start] > arr[mid]) {
+            int temp = arr[start];
+            arr[start] = arr[mid];
+            arr[mid] = temp;
+        }
+        if (arr[start] > arr[end]) {
+            int temp = arr[start];
+            arr[start] = arr[end];
+            arr[end] = temp;
+        }
+        if (arr[mid] > arr[end]) {
+            int temp = arr[mid];
+            arr[mid] = arr[end];
+            arr[end] = temp;
+        }
+
+        // Place median at end so partition() picks it up as usual
+        int temp = arr[mid];
+        arr[mid] = arr[end];
+        arr[end] = temp;
+    }
+
     // Merge Sort
     static void mergeSort(int[] arr) {
         int n = arr.length;
@@ -51,6 +102,7 @@ public class SortingComparisonGraph {
         int i = 0, l = 0, r = 0;
         while (l < left.length && r < right.length)
             arr[i++] = (left[l] < right[r]) ? left[l++] : right[r++];
+
         while (l < left.length)
             arr[i++] = left[l++];
         while (r < right.length)
@@ -65,13 +117,12 @@ public class SortingComparisonGraph {
         for (int i = n / 2 - 1; i >= 0; i--)
             heapify(arr, n, i);
 
-        // Extract elements from heap one by one
         for (int i = n - 1; i > 0; i--) {
             // Move current root (max) to end
             int temp = arr[0];
             arr[0] = arr[i];
             arr[i] = temp;
-            // Heapify the reduced heap
+
             heapify(arr, i, 0);
         }
     }
@@ -136,25 +187,45 @@ public class SortingComparisonGraph {
 
     // Benchmark - returns 4 times: [quick, merge, heap, bubble]
     static long[] benchmark(int[] arr) {
-        int[] copy1 = Arrays.copyOf(arr, arr.length);
-        long start = System.nanoTime();
-        quickSort(copy1, 0, copy1.length - 1);
-        long qTime = System.nanoTime() - start;
+        long total = 0;
 
-        int[] copy2 = Arrays.copyOf(arr, arr.length);
-        start = System.nanoTime();
-        mergeSort(copy2);
-        long mTime = System.nanoTime() - start;
+        for (int i = 0; i < 4; i++) {
+            int[] copy = Arrays.copyOf(arr, arr.length);
+            long start = System.nanoTime();
+            quickSortBetter(copy, 0, copy.length - 1);
+            total += System.nanoTime() - start;
+        }
 
-        int[] copy3 = Arrays.copyOf(arr, arr.length);
-        start = System.nanoTime();
-        heapSort(copy3);
-        long hTime = System.nanoTime() - start;
+        long qTime = total / 4;
 
-        int[] copy4 = Arrays.copyOf(arr, arr.length);
-        start = System.nanoTime();
-        bubbleSort(copy4);
-        long bTime = System.nanoTime() - start;
+        total = 0;
+        for (int i = 0; i < 4; i++) {
+            int[] copy2 = Arrays.copyOf(arr, arr.length);
+            long start = System.nanoTime();
+            mergeSort(copy2);
+            total += System.nanoTime() - start;
+        }
+
+        long mTime = total / 4;
+
+        total = 0;
+        for (int i = 0; i < 4; i++) {
+            int[] copy3 = Arrays.copyOf(arr, arr.length);
+            long start = System.nanoTime();
+            heapSort(copy3);
+            total += System.nanoTime() - start;
+        }
+
+        long hTime = total / 4;
+
+        total = 0;
+        for (int i = 0; i < 1; i++) {
+            int[] copy4 = Arrays.copyOf(arr, arr.length);
+            long start = System.nanoTime();
+            bubbleSort(copy4);
+            total += System.nanoTime() - start;
+        }
+        long bTime = total / 1;
 
         return new long[] { qTime, mTime, hTime, bTime };
     }
@@ -162,7 +233,7 @@ public class SortingComparisonGraph {
     // Run Tests and Collect Data
     static Map<String, long[]> runAllTests() {
         Map<String, long[]> results = new LinkedHashMap<>();
-        int[] sizes = { 100, 10000, 15000 };
+        int[] sizes = { 100, 10000, 100000 };
 
         for (int size : sizes) {
             results.put("Random " + size, benchmark(generateRandom(size)));
@@ -185,18 +256,40 @@ public class SortingComparisonGraph {
             dataset.addValue(times[3] / 1000000.0, "Bubble Sort", label);
         }
 
-        JFreeChart chart = ChartFactory.createBarChart(
-                "Sorting Benchmark",
+        JFreeChart chart = ChartFactory.createLineChart(
+                "Sorting Algorithm Benchmark",
                 "Array Type & Size",
                 "Time (ms)",
                 dataset,
                 PlotOrientation.VERTICAL,
                 true, true, false);
 
+        // Style the plot
+        CategoryPlot plot = chart.getCategoryPlot();
+        plot.setBackgroundPaint(Color.WHITE);
+        plot.setRangeGridlinePaint(Color.LIGHT_GRAY);
+        plot.setDomainGridlinePaint(Color.LIGHT_GRAY);
+        plot.setDomainGridlinesVisible(true);
+
+        // Make lines thicker and add data point shapes
+        LineAndShapeRenderer renderer = new LineAndShapeRenderer();
+        renderer.setDefaultShapesVisible(true);
+        renderer.setDefaultStroke(new BasicStroke(2.0f));
+        renderer.setSeriesPaint(0, new Color(70, 130, 180)); // Quick - blue
+        renderer.setSeriesPaint(1, new Color(60, 179, 113)); // Merge - green
+        renderer.setSeriesPaint(2, new Color(255, 165, 0)); // Heap - orange
+        renderer.setSeriesPaint(3, new Color(220, 50, 50)); // Bubble - red
+        plot.setRenderer(renderer);
+
+        // Rotate x-axis labels so they don't overlap
+        CategoryAxis domainAxis = plot.getDomainAxis();
+        domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+
         JFrame frame = new JFrame("Sorting Benchmark Chart");
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.add(new ChartPanel(chart));
-        frame.pack();
+        frame.setSize(1000, 600);
+        frame.setLocationRelativeTo(null);
         frame.setVisible(true);
     }
 
