@@ -95,6 +95,11 @@ public class SortingComparisonGraph {
         int[] right = Arrays.copyOfRange(arr, mid, n);
         mergeSort(left);
         mergeSort(right);
+
+        if (left[left.length - 1] <= right[0]) {
+            return;
+        }
+
         merge(left, right, arr);
     }
 
@@ -123,7 +128,7 @@ public class SortingComparisonGraph {
             arr[0] = arr[i];
             arr[i] = temp;
 
-            heapify(arr, i, 0);
+            heapifyIterative(arr, i, 0);
         }
     }
 
@@ -142,6 +147,29 @@ public class SortingComparisonGraph {
             arr[root] = arr[largest];
             arr[largest] = temp;
             heapify(arr, n, largest);
+        }
+    }
+
+    static void heapifyIterative(int[] arr, int n, int root) {
+        int largest = root;
+        while (true) {
+            int left = 2 * largest + 1;
+            int right = 2 * largest + 2;
+            int newLargest = largest;
+
+            if (left < n && arr[left] > arr[newLargest])
+                newLargest = left;
+            if (right < n && arr[right] > arr[newLargest])
+                newLargest = right;
+
+            if (newLargest == largest)
+                break;
+
+            int temp = arr[largest];
+            arr[largest] = arr[newLargest];
+            arr[newLargest] = temp;
+
+            largest = newLargest;
         }
     }
 
@@ -218,12 +246,12 @@ public class SortingComparisonGraph {
 
         long hTime = total / 4;
 
-        total = 0;
+        total = 10;
         for (int i = 0; i < 1; i++) {
-            int[] copy4 = Arrays.copyOf(arr, arr.length);
-            long start = System.nanoTime();
-            bubbleSort(copy4);
-            total += System.nanoTime() - start;
+        int[] copy4 = Arrays.copyOf(arr, arr.length);
+        long start = System.nanoTime();
+        bubbleSort(copy4);
+        total += System.nanoTime() - start;
         }
         long bTime = total / 1;
 
@@ -253,7 +281,7 @@ public class SortingComparisonGraph {
             dataset.addValue(times[0] / 1000000.0, "Quick Sort", label);
             dataset.addValue(times[1] / 1000000.0, "Merge Sort", label);
             dataset.addValue(times[2] / 1000000.0, "Heap Sort", label);
-            dataset.addValue(times[3] / 1000000.0, "Bubble Sort", label);
+            // dataset.addValue(times[3] / 1000000.0, "Bubble Sort", label);
         }
 
         JFreeChart chart = ChartFactory.createLineChart(
@@ -278,7 +306,7 @@ public class SortingComparisonGraph {
         renderer.setSeriesPaint(0, new Color(70, 130, 180)); // Quick - blue
         renderer.setSeriesPaint(1, new Color(60, 179, 113)); // Merge - green
         renderer.setSeriesPaint(2, new Color(255, 165, 0)); // Heap - orange
-        renderer.setSeriesPaint(3, new Color(220, 50, 50)); // Bubble - red
+        // renderer.setSeriesPaint(3, new Color(220, 50, 50)); // Bubble - red
         plot.setRenderer(renderer);
 
         // Rotate x-axis labels so they don't overlap
